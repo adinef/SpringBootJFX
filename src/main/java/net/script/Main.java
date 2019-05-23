@@ -1,4 +1,4 @@
-package sample;
+package net.script;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

@@ -1,4 +1,4 @@
-package sample.utils;
+package net.script.utils;
 
 import com.jfoenix.controls.JFXAlert;
 import com.jfoenix.controls.JFXButton;

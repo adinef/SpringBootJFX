@@ -1,4 +1,4 @@
-package sample.data.entities;
+package net.script.data.entities;
 
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "person")
-public class Person extends RecursiveTreeObject<Person> {
+public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
