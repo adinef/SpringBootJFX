@@ -1,6 +1,9 @@
 package net.script.view;
 
-import com.jfoenix.controls.*;
+import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXTreeTableColumn;
+import com.jfoenix.controls.JFXTreeTableView;
+import com.jfoenix.controls.RecursiveTreeItem;
 import com.jfoenix.controls.cells.editors.IntegerTextFieldEditorBuilder;
 import com.jfoenix.controls.cells.editors.TextFieldEditorBuilder;
 import com.jfoenix.controls.cells.editors.base.EditorNodeBuilder;
@@ -10,6 +13,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -18,13 +22,15 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+import lombok.extern.slf4j.Slf4j;
 import net.script.config.mapping.EntitiesMapper;
 import net.script.data.dto.PersonDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import net.script.data.entities.Person;
 import net.script.data.repositories.PersonRepository;
 import net.script.utils.CommonFXUtils;
+import net.script.view.managers.ReadDatabaseTask;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -32,13 +38,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
 @Controller
+@Slf4j
 public class MainController implements Initializable {
 
     private final PersonRepository personRepository;
     private final EntitiesMapper mapper;
+
     private ObservableList<PersonDto> peoplePopulated = FXCollections.emptyObservableList();
 
     @FXML
@@ -91,32 +98,36 @@ public class MainController implements Initializable {
                 new TextFieldEditorBuilder()
         );
         //DATA LOADING, MAY TAKE LONG:
-        fetchDataFromDb(
-                () -> extractFromResult(personRepository::findAll),
-                Arrays.asList(idCol, nameCol, lastNameCol)
-        );
+        Service<List<PersonDto>> readAllTask = new ReadDatabaseTask(this.personRepository, mapper);
+        readAllTask.setOnSucceeded((e) -> {
+            this.peoplePopulated = FXCollections.observableList(readAllTask.getValue());
+            this.populateTableView(this.peoplePopulated, Arrays.asList(idCol, nameCol, lastNameCol));
+            CommonFXUtils.noDataPopup(
+                    "Data loaded",
+                    "Data loaded successfully.",
+                    button.getScene()
+            );
+        });
+        readAllTask.setOnFailed((e) -> {
+            log.error(readAllTask.getMessage() + readAllTask.getException().getMessage());
+            CommonFXUtils.noDataPopup(
+                    "Data not loaded",
+                    "Error occurred during data load time. Check the logs for more information.",
+                    button.getScene()
+            );
+        });
+        readAllTask.start();
         //END OF DATA LOADING
-        CommonFXUtils.noDataPopup(
-                "Data loaded",
-                "Data loaded successfully.",
-                button.getScene()
-        );
-    }
-
-    private void fetchDataFromDb(Supplier<ObservableList<PersonDto>> personDtoSupplier,
-                                 List<JFXTreeTableColumn<PersonDto, ?>> cols) {
-        peoplePopulated = personDtoSupplier.get();
-        Platform.runLater(
-                () -> this.populateTableView(peoplePopulated, cols)
-        );
     }
 
     private <T> void onEdit(TreeTableColumn.CellEditEvent<PersonDto, T> e, BiConsumer<PersonDto, T> propSet) {
         PersonDto personDto = e.getTreeTableView().getTreeItem(e.getTreeTablePosition().getRow()).getValue();
         propSet.accept(personDto, e.getNewValue());
         // Instant saving
-        Person personMapped = this.mapper.mapToPerson(personDto);
-        this.personRepository.save(personMapped);
+        Platform.runLater(() -> {
+            Person personMapped = this.mapper.mapToPerson(personDto);
+            this.personRepository.save(personMapped);
+        });
     }
 
     @FXML
@@ -128,21 +139,11 @@ public class MainController implements Initializable {
         this.personRepository.saveAll(peopleList);
     }
 
-    private ObservableList<PersonDto> extractFromResult(Supplier<Iterable<Person>> supplier) {
-        List<PersonDto> elems = new LinkedList<>();
-        supplier
-                .get()
-                .forEach((e) -> {
-                    elems.add(this.mapper.mapToPersonDto(e));
-                });
-        return FXCollections.observableList(elems);
-    }
-
     private <T> JFXTreeTableColumn<PersonDto, T> prepColumn(
             String name,
             Callback<TreeTableColumn.CellDataFeatures<PersonDto, T>, ObservableValue<T>> callback,
             EventHandler<TreeTableColumn.CellEditEvent<PersonDto, T>> onEdit,
-            EditorNodeBuilder nodeEditorBuilder) {
+            EditorNodeBuilder<? extends java.io.Serializable> nodeEditorBuilder) {
         JFXTreeTableColumn<PersonDto, T> col = new JFXTreeTableColumn<>(name);
         col.setPrefWidth(200);
         col.setCellValueFactory(callback);
