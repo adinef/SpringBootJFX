@@ -40,6 +40,8 @@
             <items>
                 <JFXButton fx:id="button" buttonType="RAISED" onAction="#loadData" prefHeight="51.0" prefWidth="139.0"
                            ripplerFill="#8d2a2a" text="Load data"/>
+                <JFXButton fx:id="save" buttonType="RAISED" onAction="#saveAll" prefHeight="51.0" prefWidth="139.0"
+                           ripplerFill="#8d2a2a" text="Save data"/>
             </items>
         </ToolBar>
     </children>

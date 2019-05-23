@@ -1,6 +1,5 @@
 package net.script.data.entities;
 
-import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

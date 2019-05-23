@@ -15,4 +15,12 @@ public class EntitiesMapper {
                 new SimpleStringProperty(e.getLastName())
         );
     }
+
+    public Person mapToPerson(PersonDto e) {
+        return new Person(
+                Long.parseLong(e.getId().get()),
+                e.getName().get(),
+                e.getLastName().get()
+        );
+    }
 }
