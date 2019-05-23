@@ -1,5 +1,6 @@
 package net.script.config.mapping;
 
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import net.script.data.dto.PersonDto;
 import net.script.data.entities.Person;
@@ -10,7 +11,7 @@ public class EntitiesMapper {
 
     public PersonDto mapToPersonDto(Person e) {
         return new PersonDto(
-                new SimpleStringProperty(e.getId().toString()),
+                new SimpleLongProperty(e.getId()),
                 new SimpleStringProperty(e.getName()),
                 new SimpleStringProperty(e.getLastName())
         );
@@ -18,7 +19,7 @@ public class EntitiesMapper {
 
     public Person mapToPerson(PersonDto e) {
         return new Person(
-                Long.parseLong(e.getId().get()),
+                e.getId().get(),
                 e.getName().get(),
                 e.getLastName().get()
         );

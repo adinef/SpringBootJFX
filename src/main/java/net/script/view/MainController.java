@@ -1,7 +1,9 @@
 package net.script.view;
 
 import com.jfoenix.controls.*;
+import com.jfoenix.controls.cells.editors.IntegerTextFieldEditorBuilder;
 import com.jfoenix.controls.cells.editors.TextFieldEditorBuilder;
+import com.jfoenix.controls.cells.editors.base.EditorNodeBuilder;
 import com.jfoenix.controls.cells.editors.base.GenericEditableTreeTableCell;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import javafx.application.Platform;
@@ -30,7 +32,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @Controller
@@ -71,33 +72,29 @@ public class MainController implements Initializable {
 
     @FXML
     private void loadData() {
-        JFXTreeTableColumn<PersonDto, String> idCol = prepColumn(
+        JFXTreeTableColumn<PersonDto, Long> idCol = prepColumn(
                 "Id",
-                (c) -> c.getValue().getValue().getId(),
-                (e) -> onEdit(e, (p, nV) -> p.getId().setValue(nV))
+                (c) -> c.getValue().getValue().getId().asObject(),
+                (e) -> onEdit(e, (p, nV) -> p.getId().setValue(nV)),
+                new IntegerTextFieldEditorBuilder()
         );
-        idCol.setPrefWidth(200);
         JFXTreeTableColumn<PersonDto, String> nameCol = prepColumn(
                 "Name",
                 (c) -> c.getValue().getValue().getName(),
-                (e) -> onEdit(e, (p, nV) -> p.getName().setValue(nV))
+                (e) -> onEdit(e, (p, nV) -> p.getName().setValue(nV)),
+                new TextFieldEditorBuilder()
         );
-        nameCol.setPrefWidth(200);
         JFXTreeTableColumn<PersonDto, String> lastNameCol = prepColumn(
                 "LastName",
                 (c) -> c.getValue().getValue().getLastName(),
-                (e) -> onEdit(e, (p, nV) -> p.getLastName().setValue(nV))
+                (e) -> onEdit(e, (p, nV) -> p.getLastName().setValue(nV)),
+                new TextFieldEditorBuilder()
         );
-        lastNameCol.setPrefWidth(200);
         //DATA LOADING, MAY TAKE LONG:
-        JFXSpinner spinner = new JFXSpinner();
-        spinner.setRadius(20);
-        grid.getChildren().add(spinner);
-        peoplePopulated = extractFromResult(personRepository::findAll);
-        Platform.runLater(
-                () -> this.populateTableView(peoplePopulated, Arrays.asList(idCol, nameCol, lastNameCol))
+        fetchDataFromDb(
+                () -> extractFromResult(personRepository::findAll),
+                Arrays.asList(idCol, nameCol, lastNameCol)
         );
-        grid.getChildren().remove(spinner);
         //END OF DATA LOADING
         CommonFXUtils.noDataPopup(
                 "Data loaded",
@@ -106,9 +103,20 @@ public class MainController implements Initializable {
         );
     }
 
-    private void onEdit(TreeTableColumn.CellEditEvent<PersonDto, String> e, BiConsumer<PersonDto, String> propSet) {
+    private void fetchDataFromDb(Supplier<ObservableList<PersonDto>> personDtoSupplier,
+                                 List<JFXTreeTableColumn<PersonDto, ?>> cols) {
+        peoplePopulated = personDtoSupplier.get();
+        Platform.runLater(
+                () -> this.populateTableView(peoplePopulated, cols)
+        );
+    }
+
+    private <T> void onEdit(TreeTableColumn.CellEditEvent<PersonDto, T> e, BiConsumer<PersonDto, T> propSet) {
         PersonDto personDto = e.getTreeTableView().getTreeItem(e.getTreeTablePosition().getRow()).getValue();
         propSet.accept(personDto, e.getNewValue());
+        // Instant saving
+        Person personMapped = this.mapper.mapToPerson(personDto);
+        this.personRepository.save(personMapped);
     }
 
     @FXML
@@ -130,20 +138,22 @@ public class MainController implements Initializable {
         return FXCollections.observableList(elems);
     }
 
-    private JFXTreeTableColumn<PersonDto, String> prepColumn(
+    private <T> JFXTreeTableColumn<PersonDto, T> prepColumn(
             String name,
-            Callback<TreeTableColumn.CellDataFeatures<PersonDto, String>, ObservableValue<String>> callback,
-            EventHandler<TreeTableColumn.CellEditEvent<PersonDto, String>> onEdit) {
-        JFXTreeTableColumn<PersonDto, String> col = new JFXTreeTableColumn<>(name);
+            Callback<TreeTableColumn.CellDataFeatures<PersonDto, T>, ObservableValue<T>> callback,
+            EventHandler<TreeTableColumn.CellEditEvent<PersonDto, T>> onEdit,
+            EditorNodeBuilder nodeEditorBuilder) {
+        JFXTreeTableColumn<PersonDto, T> col = new JFXTreeTableColumn<>(name);
+        col.setPrefWidth(200);
         col.setCellValueFactory(callback);
-        col.setCellFactory((TreeTableColumn<PersonDto, String> param) -> new GenericEditableTreeTableCell<>(
-                new TextFieldEditorBuilder()));
+        col.setCellFactory((TreeTableColumn<PersonDto, T> param) -> new GenericEditableTreeTableCell<>(
+                nodeEditorBuilder));
         col.setOnEditCommit(onEdit);
         col.setEditable(true);
         return col;
     }
 
-    private void populateTableView(ObservableList<PersonDto> items, List<JFXTreeTableColumn<PersonDto, String>> columns) {
+    private void populateTableView(ObservableList<PersonDto> items, List<JFXTreeTableColumn<PersonDto, ?>> columns) {
         final TreeItem<PersonDto> root = new RecursiveTreeItem<>(items, RecursiveTreeObject::getChildren);
         tableView.setRoot(root);
         tableView.setShowRoot(false);
