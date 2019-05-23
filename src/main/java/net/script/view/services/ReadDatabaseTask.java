@@ -1,7 +1,5 @@
-package net.script.view.managers;
+package net.script.view.services;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +7,6 @@ import net.script.config.mapping.EntitiesMapper;
 import net.script.data.dto.PersonDto;
 import net.script.data.entities.Person;
 import net.script.data.repositories.PersonRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;

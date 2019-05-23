@@ -19,16 +19,18 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import lombok.extern.slf4j.Slf4j;
+import net.script.Main;
 import net.script.config.mapping.EntitiesMapper;
 import net.script.data.dto.PersonDto;
 import net.script.data.entities.Person;
 import net.script.data.repositories.PersonRepository;
 import net.script.utils.CommonFXUtils;
-import net.script.view.managers.ReadDatabaseTask;
+import net.script.view.services.ReadDatabaseTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -43,7 +45,10 @@ import java.util.function.BiConsumer;
 @Slf4j
 public class MainController implements Initializable {
 
+    private boolean isFullscreen;
+
     private final PersonRepository personRepository;
+
     private final EntitiesMapper mapper;
 
     private ObservableList<PersonDto> peoplePopulated = FXCollections.emptyObservableList();
@@ -159,5 +164,38 @@ public class MainController implements Initializable {
         tableView.setRoot(root);
         tableView.setShowRoot(false);
         tableView.getColumns().setAll(columns);
+    }
+
+    @FXML
+    private void restoreWindow() {
+        Main.getCurrentStage().setFullScreen(!isFullscreen);
+        isFullscreen = !isFullscreen;
+    }
+
+    @FXML
+    private void minimizeWindow() {
+        Main.getCurrentStage().setIconified(true);
+    }
+
+    @FXML
+    private void closeWindow() {
+        Main.getCurrentStage().close();
+        Platform.exit();
+    }
+
+    public void barClicked(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount()  == 2) {
+            restoreWindow();
+        }
+    }
+
+    @FXML
+    private void about() {
+        CommonFXUtils.noDataPopup(
+                "Author",
+                "Project created by Adrian Fijałkowski on MIT Licence. " +
+                "Feel free to use it for your own purposes.",
+                this.button.getScene()
+        );
     }
 }

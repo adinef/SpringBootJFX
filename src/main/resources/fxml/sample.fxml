@@ -1,48 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTreeTableView?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<?import com.jfoenix.controls.JFXTreeTableView?>
+<?import javafx.scene.layout.Pane?>
 <VBox fx:id="vBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-      prefHeight="705.0"
-      prefWidth="1055.0" spacing="10" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1"
-      fx:controller="net.script.view.MainController">
-    <children>
-        <GridPane prefHeight="685.0" prefWidth="1021.0" fx:id="grid">
-            <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                <RowConstraints maxHeight="447.0" minHeight="10.0" prefHeight="447.0" vgrow="SOMETIMES"/>
-                <RowConstraints maxHeight="217.0" minHeight="0.0" prefHeight="0.0" vgrow="SOMETIMES"/>
-            </rowConstraints>
-            <children>
-                <Label prefHeight="27.0" prefWidth="Infinity" text="Load people from database" textAlignment="CENTER">
-                    <font>
-                        <Font size="18.0"/>
-                    </font>
-                </Label>
-                <JFXTreeTableView fx:id="tableView" prefHeight="122.0" prefWidth="462.0" GridPane.columnSpan="3"
-                                  GridPane.rowIndex="1">
-                </JFXTreeTableView>
-            </children>
-        </GridPane>
-        <ToolBar prefHeight="40.0" prefWidth="200.0">
-            <items>
-                <JFXButton fx:id="button" buttonType="RAISED" onAction="#loadData" prefHeight="51.0" prefWidth="139.0"
-                           ripplerFill="#8d2a2a" text="Load data"/>
-                <JFXButton fx:id="save" buttonType="RAISED" onAction="#saveAll" prefHeight="51.0" prefWidth="139.0"
-                           ripplerFill="#8d2a2a" text="Save data"/>
-            </items>
-        </ToolBar>
-    </children>
+      prefHeight="705.0" prefWidth="1055.0" spacing="10" xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.script.view.MainController">
+    <HBox onMouseClicked="#barClicked">
+        <MenuBar style="-fx-background-color: transparent;">
+            <Menu mnemonicParsing="false" text="File">
+                <MenuItem mnemonicParsing="false" text="Close" onAction="#closeWindow"/>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Help">
+                <MenuItem mnemonicParsing="false" text="About" onAction="#about"/>
+            </Menu>
+        </MenuBar>
+        <Pane HBox.hgrow="ALWAYS"/>
+        <Button alignment="CENTER_RIGHT" contentDisplay="RIGHT" mnemonicParsing="false" onAction="#restoreWindow"
+                prefWidth="20" style="-fx-background-color: transparent;">
+            <graphic>
+                <FontIcon iconLiteral="fa-window-restore" iconSize="15"/>
+            </graphic>
+            <cursor>
+                <Cursor fx:constant="HAND"/>
+            </cursor>
+        </Button>
+        <Button alignment="CENTER_RIGHT" contentDisplay="RIGHT" mnemonicParsing="false" onAction="#minimizeWindow"
+                prefWidth="20" style="-fx-background-color: transparent;">
+            <graphic>
+                <FontIcon iconLiteral="fa-window-minimize" iconSize="15"/>
+            </graphic>
+            <cursor>
+                <Cursor fx:constant="HAND"/>
+            </cursor>
+        </Button>
+        <Button alignment="CENTER_RIGHT" contentDisplay="RIGHT" mnemonicParsing="false" onAction="#closeWindow"
+                prefWidth="20" style="-fx-background-color: transparent;">
+            <graphic>
+                <FontIcon iconLiteral="fa-window-close" iconSize="15"/>
+            </graphic>
+            <cursor>
+                <Cursor fx:constant="HAND"/>
+            </cursor>
+        </Button>
+    </HBox>
+    <GridPane fx:id="grid" prefHeight="685.0" prefWidth="1021.0">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            <ColumnConstraints/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints maxHeight="508.0" minHeight="10.0" prefHeight="508.0" vgrow="SOMETIMES"/>
+            <RowConstraints maxHeight="217.0" minHeight="0.0" prefHeight="0.0" vgrow="SOMETIMES"/>
+        </rowConstraints>
+        <Label alignment="CENTER" prefHeight="27.0" prefWidth="Infinity" text="Load people from database"
+               textAlignment="CENTER">
+            <font>
+                <Font size="18.0"/>
+            </font>
+        </Label>
+        <JFXTreeTableView fx:id="tableView" prefHeight="122.0" prefWidth="462.0" GridPane.columnSpan="3"
+                          GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+        </JFXTreeTableView>
+    </GridPane>
+    <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="NEVER">
+        <JFXButton fx:id="button" buttonType="RAISED" onAction="#loadData" prefHeight="51.0" prefWidth="139.0"
+                   ripplerFill="#8d2a2a" text="Load data">
+            <cursor>
+                <Cursor fx:constant="HAND"/>
+            </cursor>
+        </JFXButton>
+        <JFXButton fx:id="save" buttonType="RAISED" onAction="#saveAll" prefHeight="51.0" prefWidth="139.0"
+                   ripplerFill="#8d2a2a" text="Save data">
+            <cursor>
+                <Cursor fx:constant="HAND"/>
+            </cursor>
+        </JFXButton>
+    </ToolBar>
 </VBox>
